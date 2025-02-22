@@ -1,11 +1,18 @@
 
 import { useState } from "react";
-import { IdCard, Printer } from "lucide-react";
+import { IdCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/FileUpload";
 import { BadgePreview } from "@/components/BadgePreview";
 import { DataTable } from "@/components/DataTable";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Employee {
   employeeId: string;
@@ -19,6 +26,7 @@ interface Employee {
 const Index = () => {
   const [employeeData, setEmployeeData] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
 
   const handleUpload = (data: Employee[]) => {
@@ -48,30 +56,31 @@ const Index = () => {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <FileUpload onUpload={handleUpload} />
-          <DataTable 
-            data={employeeData} 
-            onSelectEmployee={setSelectedEmployee}
-            onPrintBadge={handlePrintBadge}
-          />
-        </div>
-
-        <div className="space-y-6">
-          <BadgePreview employee={selectedEmployee || {}} />
-          <div className="flex justify-center">
-            <Button
-              onClick={() => selectedEmployee && handlePrintBadge(selectedEmployee)}
-              className="animate-scale-in"
-              disabled={!selectedEmployee}
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Print Badge
-            </Button>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <FileUpload onUpload={handleUpload} />
+        <DataTable 
+          data={employeeData} 
+          onSelectEmployee={(employee) => {
+            setSelectedEmployee(employee);
+            setShowPreview(true);
+          }}
+          onPrintBadge={handlePrintBadge}
+        />
       </div>
+
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-[800px] p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Badge Preview</DialogTitle>
+            <DialogDescription>
+              Preview and print the employee badge
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-6">
+            <BadgePreview employee={selectedEmployee || {}} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
