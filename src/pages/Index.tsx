@@ -5,14 +5,23 @@ import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/FileUpload";
 import { BadgePreview } from "@/components/BadgePreview";
 import { DataTable } from "@/components/DataTable";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+
+interface Employee {
+  employeeId: string;
+  name: string;
+  position: string;
+  department: string;
+  location: string;
+  photo?: string;
+}
 
 const Index = () => {
-  const [employeeData, setEmployeeData] = useState<any[]>([]);
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [employeeData, setEmployeeData] = useState<Employee[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const { toast } = useToast();
 
-  const handleUpload = (data: any[]) => {
+  const handleUpload = (data: Employee[]) => {
     setEmployeeData(data);
     toast({
       title: "File uploaded successfully",
@@ -20,17 +29,11 @@ const Index = () => {
     });
   };
 
-  const handlePrint = () => {
-    if (!selectedEmployee) {
-      toast({
-        title: "No employee selected",
-        description: "Please select an employee to print their badge",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    window.print();
+  const handlePrintBadge = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setTimeout(() => {
+      window.print();
+    }, 100); // Small delay to ensure the preview updates
   };
 
   return (
@@ -41,23 +44,25 @@ const Index = () => {
           <h1 className="text-3xl font-semibold">Badge Generator</h1>
         </div>
         <p className="text-gray-600">
-          Upload your employee data and generate professional badges
+          Upload your employee data or use the sample data to generate professional badges
         </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <FileUpload onUpload={handleUpload} />
-          {employeeData.length > 0 && (
-            <DataTable data={employeeData} onSelectEmployee={setSelectedEmployee} />
-          )}
+          <DataTable 
+            data={employeeData} 
+            onSelectEmployee={setSelectedEmployee}
+            onPrintBadge={handlePrintBadge}
+          />
         </div>
 
         <div className="space-y-6">
           <BadgePreview employee={selectedEmployee || {}} />
           <div className="flex justify-center">
             <Button
-              onClick={handlePrint}
+              onClick={() => selectedEmployee && handlePrintBadge(selectedEmployee)}
               className="animate-scale-in"
               disabled={!selectedEmployee}
             >
